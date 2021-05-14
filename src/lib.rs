@@ -6,9 +6,11 @@ pub trait Readable {}
 pub trait Writeable {}
 
 pub trait Register<T> {
-    fn write(value: T)
+    fn write(_value: T)
     where
-        Self: Writeable;
+        Self: Writeable,
+    {
+    }
     fn read() -> T
     where
         Self: Readable;
