@@ -23,12 +23,12 @@ pub trait RegBuffFlush {
 }
 /// Impl for RegBuff::Regbuff if you want to config field.
 pub trait RegWriteField {
-    fn write<T: RegField>(&mut self, value: T::ValueType) -> &mut Self;
+    fn write<T: RegField + RegFieldWrite>(&mut self, value: T::ValueType) -> &mut Self;
 }
 /// impl for RegBuff::Regbuff if you want to get field;
 pub trait RegReadField {
-    fn read<T: RegField>(&self) -> T::ValueType;
-    fn output<T: RegField>(&self, out: &mut T::ValueType) -> &Self;
+    fn read<T: RegField + RegFieldRead>(&self) -> T::ValueType;
+    fn output<T: RegField + RegFieldRead>(&self, out: &mut T::ValueType) -> &Self;
 }
 
 /// impl for Reg's fields;
