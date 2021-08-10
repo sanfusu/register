@@ -1,49 +1,39 @@
 #![no_std]
 
-use core::ops::{BitAnd, BitOr, Not, Shl, Shr};
-
-pub trait Readable {}
-pub trait Writeable {}
-
-pub trait Register<T> {
-    fn write(_value: T)
-    where
-        Self: Writeable,
-    {
-    }
-    fn read() -> T
-    where
-        Self: Readable;
+/// impl for Regs. All the work start from buff;
+pub trait RegBuff {
+    type RegBuffType; // : RegWriteField + RegReadField;
+    fn buff() -> Self::RegBuffType;
 }
 
-pub trait Bitssor<T>
-where
-    Self: Register<T>,
-    T: Shl<Output = T>
-        + BitAnd<Output = T>
-        + Shl<Output = T>
-        + BitOr<Output = T>
-        + Not<Output = T>
-        + Shr<Output = T>,
-{
-    fn read<Field: BitField<T> + Readable>(&self) -> T
-    where
-        Self: Readable,
-    {
-        let raw_data = <Self as Register<T>>::read();
-        raw_data & Field::MASK >> Field::OFFSET
-    }
-    fn write<Field: BitField<T> + Writeable + Readable>(&mut self, value: T)
-    where
-        Self: Writeable + Readable,
-    {
-        let mut raw_data = <Self as Register<T>>::read();
-        raw_data = (raw_data & !(Field::MASK)) | (value << Field::OFFSET);
-        <Self as Register<T>>::write(raw_data);
-    }
+/// impl for writeable Regs;
+pub trait RegWrite: RegBuff {
+    fn write(buff: Self::RegBuffType);
 }
 
-pub trait BitField<T> {
-    const OFFSET: T;
-    const MASK: T;
+/// Impl for RegBuff::Regbuff if you want to config field.
+pub trait RegWriteField {
+    fn write<T: RegField>(&mut self, value: T::ValueType) -> &mut Self;
+}
+/// impl for RegBuff::Regbuff if you want to get field;
+pub trait RegReadField {
+    fn read<T: RegField>(&self) -> T::ValueType;
+    fn output<T: RegField>(&self, out: &mut T::ValueType) -> &Self;
+}
+
+/// impl for Reg's fields;
+/// RegFieldWrite and RegFieldRead use the same ValueType and Regbuff to keep consistency.
+pub trait RegField {
+    type ValueType;
+    /// RegBuffType is the same as [`RegBuff::RegBuffType`]
+    type RegBuffType;
+}
+
+/// impl for RegField's instance
+pub trait RegFieldWrite: RegField {
+    fn write(reg_buff: &mut Self::RegBuffType, value: Self::ValueType);
+}
+/// impl for RegField's instance
+pub trait RegFieldRead: RegField {
+    fn read(reg_buff: &Self::RegBuffType) -> Self::ValueType;
 }
