@@ -2,7 +2,7 @@
 
 /// impl for Regs. All the work start from buff;
 pub trait RegBuff {
-    type RegBuffType; // : RegWriteField + RegReadField;
+    type RegBuffType; // : RegWriteField + RegReadField + RegBuffFlush;
     fn buff() -> Self::RegBuffType;
 }
 
@@ -11,6 +11,15 @@ pub trait RegWrite: RegBuff {
     fn write(buff: Self::RegBuffType);
 }
 
+/// Flush the buff into register;
+/// You can impl either RegWrite for Regs 
+/// or RegBuffFlush for [`RegBuff::RegBuffType`] or both.
+pub trait RegBuffFlush {
+    /// It's not necessary to make it mutable,
+    /// but we want to sure use it after RegWriteField::write 
+    /// rather than RegReadField::output.
+    fn flush(&mut self);
+}
 /// Impl for RegBuff::Regbuff if you want to config field.
 pub trait RegWriteField {
     fn write<T: RegField>(&mut self, value: T::ValueType) -> &mut Self;
