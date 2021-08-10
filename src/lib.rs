@@ -3,6 +3,7 @@
 /// impl for Regs. All the work start from buff;
 pub trait RegBuff {
     type RegBuffType; // : RegWriteField + RegReadField + RegBuffFlush;
+    /// Read the register and copy the content into the buff which's type is [`Self::RegBuffType`].
     fn buff() -> Self::RegBuffType;
 }
 
@@ -12,11 +13,11 @@ pub trait RegWrite: RegBuff {
 }
 
 /// Flush the buff into register;
-/// You can impl either RegWrite for Regs 
+/// You can impl either RegWrite for Regs
 /// or RegBuffFlush for [`RegBuff::RegBuffType`] or both.
 pub trait RegBuffFlush {
     /// It's not necessary to make it mutable,
-    /// but we want to sure use it after RegWriteField::write 
+    /// but we want to sure use it after RegWriteField::write
     /// rather than RegReadField::output.
     fn flush(&mut self);
 }
@@ -31,7 +32,7 @@ pub trait RegReadField {
 }
 
 /// impl for Reg's fields;
-/// RegFieldWrite and RegFieldRead use the same ValueType and Regbuff to keep consistency.
+/// RegFieldWrite and RegFieldRead use the same ValueType and Regbuff to keep consistent.
 pub trait RegField {
     type ValueType;
     /// RegBuffType is the same as [`RegBuff::RegBuffType`]
