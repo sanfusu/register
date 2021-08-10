@@ -23,12 +23,27 @@ pub trait RegBuffFlush {
 }
 /// Impl for RegBuff::Regbuff if you want to config field.
 pub trait RegWriteField {
-    fn write<T: RegField + RegFieldWrite>(&mut self, value: T::ValueType) -> &mut Self;
+    #[must_use = "The modified value works after flushed into register"]
+    fn write<T: RegField<RegBuffType = Self> + RegFieldWrite>(
+        &mut self,
+        value: T::ValueType,
+    ) -> &mut Self {
+        T::write(self, value);
+        self
+    }
 }
 /// impl for RegBuff::Regbuff if you want to get field;
 pub trait RegReadField {
-    fn read<T: RegField + RegFieldRead>(&self) -> T::ValueType;
-    fn output<T: RegField + RegFieldRead>(&self, out: &mut T::ValueType) -> &Self;
+    fn read<T: RegField<RegBuffType = Self> + RegFieldRead>(&self) -> T::ValueType {
+        T::read(self)
+    }
+    fn output<T: RegField<RegBuffType = Self> + RegFieldRead>(
+        &self,
+        out: &mut T::ValueType,
+    ) -> &Self {
+        *out = T::read(self);
+        self
+    }
 }
 
 /// impl for Reg's fields;
@@ -46,4 +61,28 @@ pub trait RegFieldWrite: RegField {
 /// impl for RegField's instance
 pub trait RegFieldRead: RegField {
     fn read(reg_buff: &Self::RegBuffType) -> Self::ValueType;
+}
+
+#[macro_export]
+macro_rules! impl_bool_fields {
+    ($(($field:path, $position:literal)),*) => {
+        $(impl $field {
+            const POSITION: u32 = $position;
+        }
+        impl RegField for $field {
+            type ValueType = bool;
+
+            type RegBuffType = super::Cr0Buff;
+        }
+        impl RegFieldWrite for $field {
+            fn write(reg_buff: &mut Self::RegBuffType, value: Self::ValueType) {
+                reg_buff.data = reg_buff.data.bits(Self::POSITION).write(value.into());
+            }
+        }
+        impl RegFieldRead for $field {
+            fn read(reg_buff: &Self::RegBuffType) -> Self::ValueType {
+                reg_buff.data.bits(Self::POSITION).read() == 1
+            }
+        })*
+    };
 }
