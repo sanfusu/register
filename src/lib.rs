@@ -75,11 +75,13 @@ macro_rules! impl_bool_fields {
             type RegBuffType = super::Cr0Buff;
         }
         impl RegFieldWrite for $field {
+            #[inline]
             fn write(reg_buff: &mut Self::RegBuffType, value: Self::ValueType) {
                 reg_buff.data = reg_buff.data.bits(Self::POSITION).write(value.into());
             }
         }
         impl RegFieldRead for $field {
+            #[inline]
             fn read(reg_buff: &Self::RegBuffType) -> Self::ValueType {
                 reg_buff.data.bits(Self::POSITION).read() == 1
             }
