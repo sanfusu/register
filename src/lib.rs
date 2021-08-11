@@ -63,26 +63,33 @@ pub trait RegFieldRead: RegField {
     fn read(reg_buff: &Self::RegBuffType) -> Self::ValueType;
 }
 
+// re-export due to the $crate::bits in macro impl_bool_fields
+pub use bits;
+
 #[macro_export]
 macro_rules! impl_bool_fields {
-    ($(($field:path, $position:literal)),*) => {
+    ($reg_buff_type:ty, $(($field:ty, $position:literal)),*) => {
         $(impl $field {
             const POSITION: u32 = $position;
         }
-        impl RegField for $field {
+        impl $crate::RegField for $field {
             type ValueType = bool;
 
-            type RegBuffType = super::Cr0Buff;
+            type RegBuffType = $reg_buff_type;
         }
-        impl RegFieldWrite for $field {
+        impl $crate::RegFieldWrite for $field {
             #[inline]
             fn write(reg_buff: &mut Self::RegBuffType, value: Self::ValueType) {
+                use $crate::bits::BitOps;
+                use $crate::{RegField, RegFieldWrite};
                 reg_buff.data = reg_buff.data.bits(Self::POSITION).write(value.into());
             }
         }
-        impl RegFieldRead for $field {
+        impl $crate::RegFieldRead for $field {
             #[inline]
             fn read(reg_buff: &Self::RegBuffType) -> Self::ValueType {
+                use $crate::bits::BitOps;
+                use $crate::{RegField, RegFieldRead};
                 reg_buff.data.bits(Self::POSITION).read() == 1
             }
         })*
