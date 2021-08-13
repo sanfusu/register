@@ -2,20 +2,20 @@
 
 /// impl for Regs. All the work start from buff;
 pub trait RegBuff {
-    type RegBuffType; // : RegWriteField + RegReadField + RegBuffFlush;
-    /// Read the register and copy the content into the buff which's type is [`Self::RegBuffType`].
-    fn buff() -> Self::RegBuffType;
+    type RegBufferType; // : RegWriteField + RegReadField + RegBuffFlush;
+    /// Read the register and copy the content into the buff which's type is [`Self::RegBufferType`].
+    fn buff() -> Self::RegBufferType;
 }
 
 /// impl for writeable Regs;
 pub trait RegWrite: RegBuff {
-    fn write(buff: Self::RegBuffType);
+    fn write(buff: Self::RegBufferType);
 }
 
 /// Flush the buff into register;
 /// You can impl either RegWrite for Regs
-/// or RegBuffFlush for [`RegBuff::RegBuffType`] or both.
-pub trait RegBuffFlush {
+/// or RegBuffFlush for [`RegBuff::RegBufferType`] or both.
+pub trait RegBufferFlush {
     /// It's not necessary to make it mutable,
     /// but we want to sure use it after RegWriteField::write
     /// rather than RegReadField::output.
@@ -24,23 +24,20 @@ pub trait RegBuffFlush {
 /// Impl for RegBuff::Regbuff if you want to config field.
 pub trait RegWriteField {
     #[must_use = "The modified value works after flushed into register"]
-    fn write<T: RegField<RegBuffType = Self> + RegFieldWrite>(
-        &mut self,
-        value: T::ValueType,
-    ) -> &mut Self {
+    fn write<T>(&mut self, value: T::ValueType) -> &mut Self
+    where
+        T: RegField<Self> + RegFieldWrite<Self>,
+    {
         T::write(self, value);
         self
     }
 }
 /// impl for RegBuff::Regbuff if you want to get field;
 pub trait RegReadField {
-    fn read<T: RegField<RegBuffType = Self> + RegFieldRead>(&self) -> T::ValueType {
+    fn read<T: RegField<Self> + RegFieldRead<Self>>(&self) -> T::ValueType {
         T::read(self)
     }
-    fn output<T: RegField<RegBuffType = Self> + RegFieldRead>(
-        &self,
-        out: &mut T::ValueType,
-    ) -> &Self {
+    fn output<T: RegField<Self> + RegFieldRead<Self>>(&self, out: &mut T::ValueType) -> &Self {
         *out = T::read(self);
         self
     }
@@ -48,17 +45,24 @@ pub trait RegReadField {
 
 /// impl for Reg's fields;
 /// RegFieldWrite and RegFieldRead use the same ValueType and Regbuff to keep consistent.
-pub trait RegField {
+pub trait RegField<RegBufferType>
+where
+    RegBufferType: ?Sized,
+{
     type ValueType;
-    /// RegBuffType is the same as [`RegBuff::RegBuffType`]
-    type RegBuffType;
 }
 
 /// impl for RegField's instance
-pub trait RegFieldWrite: RegField {
-    fn write(reg_buff: &mut Self::RegBuffType, value: Self::ValueType);
+pub trait RegFieldWrite<RegBufferType>: RegField<RegBufferType>
+where
+    RegBufferType: ?Sized,
+{
+    fn write(reg_buff: &mut RegBufferType, value: Self::ValueType);
 }
 /// impl for RegField's instance
-pub trait RegFieldRead: RegField {
-    fn read(reg_buff: &Self::RegBuffType) -> Self::ValueType;
+pub trait RegFieldRead<RegBufferType>: RegField<RegBufferType>
+where
+    RegBufferType: ?Sized,
+{
+    fn read(reg_buff: &RegBufferType) -> Self::ValueType;
 }
