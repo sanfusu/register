@@ -1,15 +1,8 @@
 #![no_std]
 
-/// impl for Regs. All the work start from buff;
-pub trait RegBuffer {
-    type RegBufferType; // : RegWriteField + RegReadField + RegBuffFlush;
-    /// Read the register and copy the content into the buff which's type is [`Self::RegBufferType`].
-    fn buffer() -> Self::RegBufferType;
-}
-
 /// impl for writeable Regs;
-pub trait RegWrite: RegBuffer {
-    fn write(buff: Self::RegBufferType);
+pub trait RegWrite<RegBufferType> {
+    fn write(buff: RegBufferType);
 }
 
 /// Flush the buff into register;
