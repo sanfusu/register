@@ -5,9 +5,9 @@ pub trait RegWrite<RegBufferType> {
     fn write(buff: RegBufferType);
 }
 
-/// Flush the buff into register;
+/// Flush the buffer into register;
 /// You can impl either RegWrite for Regs
-/// or RegBuffFlush for [`RegBuffer::RegBufferType`] or both.
+/// or RegBuffFlush for RegBufferType or both.
 pub trait RegBufferFlush {
     /// It's not necessary to make it mutable,
     /// but we want to sure use it after RegWriteField::write
