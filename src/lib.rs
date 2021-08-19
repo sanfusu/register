@@ -15,22 +15,22 @@ pub trait RegBufferFlush {
     fn flush(&mut self);
 }
 /// Impl for RegBuffer::Regbuff if you want to config field.
-pub trait RegWriteField {
+pub trait BufferWriter {
     #[must_use = "The modified value works after flushed into register"]
     fn write<T>(&mut self, value: T::ValueType) -> &mut Self
     where
-        T: Field<Self> + FieldWrite<Self>,
+        T: Field<Self> + FieldWriter<Self>,
     {
         T::write(self, value);
         self
     }
 }
 /// impl for RegBuffer::Regbuff if you want to get field;
-pub trait ReadField {
-    fn read<T: Field<Self> + FieldRead<Self>>(&self) -> T::ValueType {
+pub trait BufferReader {
+    fn read<T: Field<Self> + FieldReader<Self>>(&self) -> T::ValueType {
         T::read(self)
     }
-    fn output<T: Field<Self> + FieldRead<Self>>(&self, out: &mut T::ValueType) -> &Self {
+    fn output<T: Field<Self> + FieldReader<Self>>(&self, out: &mut T::ValueType) -> &Self {
         *out = T::read(self);
         self
     }
@@ -46,14 +46,14 @@ where
 }
 
 /// impl for RegField's instance
-pub trait FieldWrite<RegBufferType>: Field<RegBufferType>
+pub trait FieldWriter<RegBufferType>: Field<RegBufferType>
 where
     RegBufferType: ?Sized,
 {
     fn write(reg_buff: &mut RegBufferType, value: Self::ValueType);
 }
 /// impl for RegField's instance
-pub trait FieldRead<RegBufferType>: Field<RegBufferType>
+pub trait FieldReader<RegBufferType>: Field<RegBufferType>
 where
     RegBufferType: ?Sized,
 {
