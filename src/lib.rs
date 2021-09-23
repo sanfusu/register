@@ -23,7 +23,7 @@ pub trait RegisterBufferReader {
 }
 pub trait RegisterBufferWriter {
     #[must_use = "The modified value works after flushed into register"]
-    fn write<T>(&mut self, value: T::ValueType) -> &mut Self
+    unsafe fn write<T>(&mut self, value: T::ValueType) -> &mut Self
     where
         T: bits::field::Field<Self> + bits::field::FieldWriter<Self>,
     {
@@ -31,7 +31,7 @@ pub trait RegisterBufferWriter {
         self
     }
     #[must_use = "The modified value works after flushed into register"]
-    fn revert<T>(&mut self) -> &mut Self
+    unsafe fn revert<T>(&mut self) -> &mut Self
     where
         T: bits::field::Field<Self> + bits::field::FieldWriter<Self>,
     {
