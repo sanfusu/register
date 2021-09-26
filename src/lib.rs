@@ -3,7 +3,7 @@
 /// Flush the buffer into register;
 /// You can impl either RegWrite for Regs
 /// or RegBuffFlush for RegBufferType or both.
-pub trait RegBufferFlush {
+pub trait RegisterBufferFlush {
     /// It's not necessary to make it mutable,
     /// but we want to sure use it after RegWriteField::write
     /// rather than RegReadField::output.
